@@ -46,9 +46,9 @@ checkBox.addEventListener('click', () => {
 
         // var json=processSchema.create(currentDom)
         console.log(currentDom)
-        html2Json(currentDom)
-        processTest(process.HTML2json(currentDom))
-        // console.log(processRequest())
+        // html2Json(currentDom)
+        // processTest(process.HTML2json(currentDom))
+        console.log(processRequest())
 
 
         try {
@@ -211,16 +211,20 @@ const processRequest = () => {
 
         } catch (e) {
             console.error(stylesheet[i])
-           try{
-               fetch(stylesheet[i].href)
-                   .then(function (response) {
-                       response.text().then(function (text) {
-                           console.log(text)
-                       });
-                   });
-           }catch (e1) {
-               console.log(e1)
-           }
+            try {
+                fetch(stylesheet[i].href)
+                    .then(function (response) {
+                        response.text().then(function (text) {
+                            var t0 = performance.now()
+                            console.log(cssToJson(text))
+                            var t1 = performance.now()
+
+                            console.log("It Took " + (t1 - t0) + " milliseconds.")
+                        });
+                    });
+            } catch (e1) {
+                console.log(e1)
+            }
         }
     }
 
@@ -231,24 +235,19 @@ const extractCss = (raw) => {
     var re = /{(.*?)}/;
     raw = raw.toString().split(re);
 
-    return raw[1]
+    return raw
 }
-
-
-
-
-
 
 
 class processSchema {
 
-    static schema2(input, output,key,value) {
+    static schema2(input, output, key, value) {
         if (!Object.keys(input).length) return;// if there's no keys, then the call returns undefined
         switch (input?.constructor) {
             case Object:
-                processSchema.processObj(input, output,key,value);
+                processSchema.processObj(input, output, key, value);
             case Array:
-                processSchema.processArr(input, output,key,value);
+                processSchema.processArr(input, output, key, value);
             case String:
             //processSchema.processString(input, output);
             default:
@@ -256,7 +255,8 @@ class processSchema {
         }
         return output;
     }
-    static create(input, output,key,value) {
+
+    static create(input, output, key, value) {
         if (getEntityType(output).includes("HTML")) { //Only HTML creation
             //    console.log("got request for  from create", input, output, key, value)
 
@@ -293,11 +293,12 @@ class processSchema {
             return nwEle;
         }
     }
+
     static setAttributes(input, output, key) {
 
     }
 
-    static appendChild(input, output, key ,value) {
+    static appendChild(input, output, key, value) {
 
         if (getEntityType(output).includes("HTML")) {
 
@@ -310,7 +311,7 @@ class processSchema {
         }
     }
 
-    static processObj(input,output,key,value) {
+    static processObj(input, output, key, value) {
 
         for (var key in input) {
             if (getEntityType(input[key]) === 'Object') {
@@ -319,7 +320,7 @@ class processSchema {
 
                 var currentNode = processSchema.create(key, output, key, input[key]);
                 //  console.log("recived from create",currentNode)
-                processSchema.schema2(input[key], currentNode,key,input[key]);
+                processSchema.schema2(input[key], currentNode, key, input[key]);
 
                 processSchema.appendChild(currentNode, output);
 
@@ -332,22 +333,23 @@ class processSchema {
                 processSchema.appendChild(currentNode, output);
 
 
-            }else if (getEntityType(input[key]) === 'String' || getEntityType(input[key]) === 'Function' || getEntityType(input[key]) === 'Boolean') {
+            } else if (getEntityType(input[key]) === 'String' || getEntityType(input[key]) === 'Function' || getEntityType(input[key]) === 'Boolean') {
                 //   console.log("create req property object", key, input[key])
                 var currentNode = processSchema.create(key, output, key, input[key]);
 
-                if (processSchema.validate(input[key], supportedType, key, input[key], "isOneOf")){
+                if (processSchema.validate(input[key], supportedType, key, input[key], "isOneOf")) {
                     currentNode.setAttribute("type", input[key]);
                 }
                 processSchema.appendChild(currentNode, output);
             } else {
-                console.log("strays",input,key,value)
+                console.log("strays", input, key, value)
             }
 
         }
         return output;
     }
-    static processArr(input, output,key,value) {
+
+    static processArr(input, output, key, value) {
 
         for (var i = 0; i < input.length; i++) {
             if (getEntityType(input[i]) === 'Object') {
@@ -373,13 +375,12 @@ class processSchema {
         }
 
 
-
         return output;
 
 
     }
 
-    static validate(input, output,key,value,validation) {
+    static validate(input, output, key, value, validation) {
         //  console.log("validating", input, output, validation)
         //this condition primarly check for the presence of a keys in any an array, if not present and options [ returns false and update and return position]
 
@@ -414,4 +415,45 @@ function processTest(json) {
     // console.log(outputJson);
     //  document.getElementById("output").innerText = JSON.stringify(outputArray);
     // document.getElementById("output").appendChild(outputE);
+}
+
+
+const cssToJson = (cssRawText) => {
+    let cssJson = [];
+
+    var cssArray = cssRawText.toString().split('}');
+
+    cssArray.filter((elem) => {
+        if (elem.length > 0) {
+            return elem
+        }
+    })
+    cssArray.forEach((elem) => {
+        elem += "}"
+
+        elem = extractCss(elem)
+        for (let i = 0; i < elem[0].length; ++i) {
+            // console.log(elem[0][i])
+            if (elem[0][i] === ',') {
+                elem[2] = "comma"
+                break;
+            }
+            if (elem[0][i] === ' ') {
+                elem[2] = "space";
+                break;
+            }
+        }
+        elem[0] = elem[0].split(/[ ,]+/);
+
+
+        var singleRule = {
+            selectors: elem[0],
+            style: elem[1],
+            separator: elem[2]
+        }
+        cssJson.push(singleRule)
+
+    })
+
+    return cssJson
 }
