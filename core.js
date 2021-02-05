@@ -216,7 +216,7 @@ const processRequest = () => {
                     .then(function (response) {
                         response.text().then(function (text) {
                             var t0 = performance.now()
-                            var rawCss=cssToJson(text);
+                            var rawCss = cssToJson(text);
                             console.log(rawCss)
                             var t1 = performance.now()
                             // addStyleSheet(rawCss)
@@ -467,15 +467,41 @@ const applyCss = (cssJson) => {
 
         if (singleStyle.separator === "comma") {
 
+            for (let i = 0; i < singleStyle.selectors.length; ++i) {
+                let selector = singleStyle.selectors[i];
 
-        } else if (singleStyle.separator === "space") {
-            let selector = singleStyle.selectors.join(' ');
+                if (selector[0] === '.') {
+                    //class
+                    let elements = document.getElementsByClassName(selector[i]);
+                    for (let j = 0; j < elements.length; ++j) {
+                        elements[j].setAttribute('style', singleStyle.style);
+                    }
+                } else if (selector[0] === '#') {
+                    //    Id
+                    document.getElementById(selector).setAttribute('style', singleStyle.style);
+                } else {
+                    //    tag
+                    let elements = document.getElementsByTagName(selector);
+                    for (let j = 0; j < elements.length; ++i) {
+                        elements[j].setAttribute('style', singleStyle.style);
+                    }
+                }
+            }
+
+
+        } else {
+            let separator = ',';
+            if (singleStyle.separator === "space") {
+                separator = ' ';
+            }
+
+            let selector = singleStyle.selectors.join(separator);
             if (singleStyle.selectors[0][0] === '.') {
                 //    class
                 let elements = document.getElementsByClassName(selector);
                 for (let i = 0; i < elements.length; ++i) {
                     try {
-                        elements[i].setAttribute('style',singleStyle.style);
+                        elements[i].setAttribute('style', singleStyle.style);
                     } catch (e) {
                         console.warn(e)
                     }
@@ -484,42 +510,40 @@ const applyCss = (cssJson) => {
                 console.warn("oops invalid css you got there")
             }
 
-        } else {
-
-
         }
+
     })
 
 
 }
 
-const addStyleSheet=(cssJson)=>{
-    cssJson.forEach((singleStyle)=>{
-        var style=document.createElement('style');
-        var head=document.head;
+const addStyleSheet = (cssJson) => {
+    cssJson.forEach((singleStyle) => {
+        var style = document.createElement('style');
+        var head = document.head;
 
         head.appendChild(style)
-        style.type="text/css";
-        let rawCss="";
+        style.type = "text/css";
+        let rawCss = "";
 
-        cssJson.forEach((singleStyle)=>{
-            if (singleStyle.separator==='comma'){
-                rawCss+=singleStyle.selectors.join(',')+'{'+singleStyle.style+';}';
-            }else if(singleStyle.separator==='space'){
-                rawCss+=singleStyle.selectors.join(' ')+'{'+singleStyle.style+';}';
-            }else {
-                rawCss+=singleStyle.selectors.toString()+'{'+singleStyle.style+';}';
+        cssJson.forEach((singleStyle) => {
+            if (singleStyle.separator === 'comma') {
+                rawCss += singleStyle.selectors.join(',') + '{' + singleStyle.style + ';}';
+            } else if (singleStyle.separator === 'space') {
+                rawCss += singleStyle.selectors.join(' ') + '{' + singleStyle.style + ';}';
+            } else {
+                rawCss += singleStyle.selectors.toString() + '{' + singleStyle.style + ';}';
             }
 
-            rawCss+="\n\n";
+            rawCss += "\n\n";
         })
 
         console.log(rawCss)
 
 
-        if (style.styleSheet){
-            style.styleSheet.cssText=rawCss;
-        }else {
+        if (style.styleSheet) {
+            style.styleSheet.cssText = rawCss;
+        } else {
             style.appendChild(document.createTextNode(rawCss));
         }
     })
