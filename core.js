@@ -549,3 +549,42 @@ const addStyleSheet = (cssJson) => {
     })
 }
 
+
+const applyCssOnElement = (domElement,
+                           selector,
+                           type, //class,id,tag
+                           cssJson
+) => {
+
+
+    const classSelectors = domElement.classList;
+    const id = domElement.id;
+
+
+    let styleString = "";
+    cssJson.forEach((singleStyle) => {
+        if (classSelectors.some(elem => singleStyle.selectors.contains(elem)) || singleStyle.selectors.contains(id)) {
+            styleString += singleStyle.style;
+        }
+    })
+    //
+    // if (type === "class") {
+    //
+    //     let elements = document.getElementsByClassName(selector)
+    //     for (let i = 0; i < elements.length; ++i) {
+    //         elements[i].setAttribute('style', styleString);
+    //     }
+    //
+    // } else if (type === "id") {
+    //     document.getElementById(selector).setAttribute('style', styleString);
+    // } else { //tag
+    //     let elements = document.getElementsByTagName(selector)
+    //     for (let i = 0; i < elements.length; ++i) {
+    //         elements[i].setAttribute('style', styleString);
+    //     }
+    // }
+
+    domElement.setAttribute('style', styleString)
+
+    return domElement;
+}
