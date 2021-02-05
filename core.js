@@ -53,7 +53,7 @@ checkBox.addEventListener('click', () => {
 
         try {
 
-            console.log(process.json2HTML(json))  //throwing error
+            // console.log(process.json2HTML(json))  //throwing error
         } catch (e) {
             console.log(e)
         }
@@ -216,10 +216,10 @@ const processRequest = () => {
                     .then(function (response) {
                         response.text().then(function (text) {
                             var t0 = performance.now()
-                            var rawCss = cssToJson(text);
+                            var rawCss = processSchema.cssToJson(text);
                             console.log(rawCss)
                             var t1 = performance.now()
-                            // addStyleSheet(rawCss)
+                            // processSchema.addStyleSheet(rawCss)
 
                             console.log("It Took " + (t1 - t0) + " milliseconds.")
                         });
@@ -394,6 +394,174 @@ class processSchema {
             }
         }
     }
+
+    static  cssToJson(cssRawText){
+        let cssJson = [];
+
+        var cssArray = cssRawText.toString().split('}');
+
+        cssArray.filter((elem) => {
+            if (elem.length > 0) {
+                return elem
+            }
+        })
+        cssArray.forEach((elem) => {
+            elem += "}"
+
+            elem = extractCss(elem)
+            for (let i = 0; i < elem[0].length; ++i) {
+                // console.log(elem[0][i])
+                if (elem[0][i] === ',') {
+                    elem[2] = "comma"
+                    break;
+                }
+                if (elem[0][i] === ' ') {
+                    elem[2] = "space";
+                    break;
+                }
+            }
+            elem[0] = elem[0].split(/[ ,]+/);
+
+
+            var singleRule = {
+                selectors: elem[0],
+                style: elem[1],
+                separator: elem[2]
+            }
+            cssJson.push(singleRule)
+
+        })
+
+        return cssJson
+    }
+    static applyCss(cssJson){
+
+
+        cssJson.forEach((singleStyle) => {
+
+            if (singleStyle.separator === "comma") {
+
+                for (let i = 0; i < singleStyle.selectors.length; ++i) {
+                    let selector = singleStyle.selectors[i];
+
+                    if (selector[0] === '.') {
+                        //class
+                        let elements = document.getElementsByClassName(selector[i]);
+                        for (let j = 0; j < elements.length; ++j) {
+                            elements[j].setAttribute('style', singleStyle.style);
+                        }
+                    } else if (selector[0] === '#') {
+                        //    Id
+                        document.getElementById(selector).setAttribute('style', singleStyle.style);
+                    } else {
+                        //    tag
+                        let elements = document.getElementsByTagName(selector);
+                        for (let j = 0; j < elements.length; ++i) {
+                            elements[j].setAttribute('style', singleStyle.style);
+                        }
+                    }
+                }
+
+
+            } else {
+                let separator = ',';
+                if (singleStyle.separator === "space") {
+                    separator = ' ';
+                }
+
+                let selector = singleStyle.selectors.join(separator);
+                if (singleStyle.selectors[0][0] === '.') {
+                    //    class
+                    let elements = document.getElementsByClassName(selector);
+                    for (let i = 0; i < elements.length; ++i) {
+                        try {
+                            elements[i].setAttribute('style', singleStyle.style);
+                        } catch (e) {
+                            console.warn(e)
+                        }
+                    }
+                } else {
+                    console.warn("oops invalid css you got there")
+                }
+
+            }
+
+        })
+
+
+    }
+
+    static addStyleSheet = (cssJson) => {
+        cssJson.forEach((singleStyle) => {
+            var style = document.createElement('style');
+            var head = document.head;
+
+            head.appendChild(style)
+            style.type = "text/css";
+            let rawCss = "";
+
+            cssJson.forEach((singleStyle) => {
+                if (singleStyle.separator === 'comma') {
+                    rawCss += singleStyle.selectors.join(',') + '{' + singleStyle.style + ';}';
+                } else if (singleStyle.separator === 'space') {
+                    rawCss += singleStyle.selectors.join(' ') + '{' + singleStyle.style + ';}';
+                } else {
+                    rawCss += singleStyle.selectors.toString() + '{' + singleStyle.style + ';}';
+                }
+
+                rawCss += "\n\n";
+            })
+
+            console.log(rawCss)
+
+
+            if (style.styleSheet) {
+                style.styleSheet.cssText = rawCss;
+            } else {
+                style.appendChild(document.createTextNode(rawCss));
+            }
+        })
+    }
+
+    static applyCssOnElement = (domElement,
+                                selector,
+                                type, //class,id,tag
+                                cssJson
+    ) => {
+
+
+        const classSelectors = domElement.classList;
+        const id = domElement.id;
+
+
+        let styleString = "";
+        cssJson.forEach((singleStyle) => {
+            if (classSelectors.some(elem => singleStyle.selectors.contains(elem)) || singleStyle.selectors.contains(id)) {
+                styleString += singleStyle.style;
+            }
+        })
+        //
+        // if (type === "class") {
+        //
+        //     let elements = document.getElementsByClassName(selector)
+        //     for (let i = 0; i < elements.length; ++i) {
+        //         elements[i].setAttribute('style', styleString);
+        //     }
+        //
+        // } else if (type === "id") {
+        //     document.getElementById(selector).setAttribute('style', styleString);
+        // } else { //tag
+        //     let elements = document.getElementsByTagName(selector)
+        //     for (let i = 0; i < elements.length; ++i) {
+        //         elements[i].setAttribute('style', styleString);
+        //     }
+        // }
+
+        domElement.setAttribute('style', styleString)
+
+        return domElement;
+    }
+
 }
 
 function getEntityType(entity) {
@@ -420,171 +588,10 @@ function processTest(json) {
 }
 
 
-const cssToJson = (cssRawText) => {
-    let cssJson = [];
-
-    var cssArray = cssRawText.toString().split('}');
-
-    cssArray.filter((elem) => {
-        if (elem.length > 0) {
-            return elem
-        }
-    })
-    cssArray.forEach((elem) => {
-        elem += "}"
-
-        elem = extractCss(elem)
-        for (let i = 0; i < elem[0].length; ++i) {
-            // console.log(elem[0][i])
-            if (elem[0][i] === ',') {
-                elem[2] = "comma"
-                break;
-            }
-            if (elem[0][i] === ' ') {
-                elem[2] = "space";
-                break;
-            }
-        }
-        elem[0] = elem[0].split(/[ ,]+/);
 
 
-        var singleRule = {
-            selectors: elem[0],
-            style: elem[1],
-            separator: elem[2]
-        }
-        cssJson.push(singleRule)
-
-    })
-
-    return cssJson
-}
-
-const applyCss = (cssJson) => {
 
 
-    cssJson.forEach((singleStyle) => {
-
-        if (singleStyle.separator === "comma") {
-
-            for (let i = 0; i < singleStyle.selectors.length; ++i) {
-                let selector = singleStyle.selectors[i];
-
-                if (selector[0] === '.') {
-                    //class
-                    let elements = document.getElementsByClassName(selector[i]);
-                    for (let j = 0; j < elements.length; ++j) {
-                        elements[j].setAttribute('style', singleStyle.style);
-                    }
-                } else if (selector[0] === '#') {
-                    //    Id
-                    document.getElementById(selector).setAttribute('style', singleStyle.style);
-                } else {
-                    //    tag
-                    let elements = document.getElementsByTagName(selector);
-                    for (let j = 0; j < elements.length; ++i) {
-                        elements[j].setAttribute('style', singleStyle.style);
-                    }
-                }
-            }
 
 
-        } else {
-            let separator = ',';
-            if (singleStyle.separator === "space") {
-                separator = ' ';
-            }
 
-            let selector = singleStyle.selectors.join(separator);
-            if (singleStyle.selectors[0][0] === '.') {
-                //    class
-                let elements = document.getElementsByClassName(selector);
-                for (let i = 0; i < elements.length; ++i) {
-                    try {
-                        elements[i].setAttribute('style', singleStyle.style);
-                    } catch (e) {
-                        console.warn(e)
-                    }
-                }
-            } else {
-                console.warn("oops invalid css you got there")
-            }
-
-        }
-
-    })
-
-
-}
-
-const addStyleSheet = (cssJson) => {
-    cssJson.forEach((singleStyle) => {
-        var style = document.createElement('style');
-        var head = document.head;
-
-        head.appendChild(style)
-        style.type = "text/css";
-        let rawCss = "";
-
-        cssJson.forEach((singleStyle) => {
-            if (singleStyle.separator === 'comma') {
-                rawCss += singleStyle.selectors.join(',') + '{' + singleStyle.style + ';}';
-            } else if (singleStyle.separator === 'space') {
-                rawCss += singleStyle.selectors.join(' ') + '{' + singleStyle.style + ';}';
-            } else {
-                rawCss += singleStyle.selectors.toString() + '{' + singleStyle.style + ';}';
-            }
-
-            rawCss += "\n\n";
-        })
-
-        console.log(rawCss)
-
-
-        if (style.styleSheet) {
-            style.styleSheet.cssText = rawCss;
-        } else {
-            style.appendChild(document.createTextNode(rawCss));
-        }
-    })
-}
-
-
-const applyCssOnElement = (domElement,
-                           selector,
-                           type, //class,id,tag
-                           cssJson
-) => {
-
-
-    const classSelectors = domElement.classList;
-    const id = domElement.id;
-
-
-    let styleString = "";
-    cssJson.forEach((singleStyle) => {
-        if (classSelectors.some(elem => singleStyle.selectors.contains(elem)) || singleStyle.selectors.contains(id)) {
-            styleString += singleStyle.style;
-        }
-    })
-    //
-    // if (type === "class") {
-    //
-    //     let elements = document.getElementsByClassName(selector)
-    //     for (let i = 0; i < elements.length; ++i) {
-    //         elements[i].setAttribute('style', styleString);
-    //     }
-    //
-    // } else if (type === "id") {
-    //     document.getElementById(selector).setAttribute('style', styleString);
-    // } else { //tag
-    //     let elements = document.getElementsByTagName(selector)
-    //     for (let i = 0; i < elements.length; ++i) {
-    //         elements[i].setAttribute('style', styleString);
-    //     }
-    // }
-
-    domElement.setAttribute('style', styleString)
-
-    return domElement;
-}
