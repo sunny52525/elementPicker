@@ -216,8 +216,10 @@ const processRequest = () => {
                     .then(function (response) {
                         response.text().then(function (text) {
                             var t0 = performance.now()
-                            console.log(cssToJson(text))
+                            var rawCss=cssToJson(text);
+                            console.log(rawCss)
                             var t1 = performance.now()
+                            // addStyleSheet(rawCss)
 
                             console.log("It Took " + (t1 - t0) + " milliseconds.")
                         });
@@ -457,3 +459,69 @@ const cssToJson = (cssRawText) => {
 
     return cssJson
 }
+
+const applyCss = (cssJson) => {
+
+
+    cssJson.forEach((singleStyle) => {
+
+        if (singleStyle.separator === "comma") {
+
+
+        } else if (singleStyle.separator === "space") {
+            let selector = singleStyle.selectors.join(' ');
+            if (singleStyle.selectors[0][0] === '.') {
+                //    class
+                let elements = document.getElementsByClassName(selector);
+                for (let i = 0; i < elements.length; ++i) {
+                    try {
+                        elements[i].setAttribute('style',singleStyle.style);
+                    } catch (e) {
+                        console.warn(e)
+                    }
+                }
+            } else {
+                console.warn("oops invalid css you got there")
+            }
+
+        } else {
+
+
+        }
+    })
+
+
+}
+
+const addStyleSheet=(cssJson)=>{
+    cssJson.forEach((singleStyle)=>{
+        var style=document.createElement('style');
+        var head=document.head;
+
+        head.appendChild(style)
+        style.type="text/css";
+        let rawCss="";
+
+        cssJson.forEach((singleStyle)=>{
+            if (singleStyle.separator==='comma'){
+                rawCss+=singleStyle.selectors.join(',')+'{'+singleStyle.style+';}';
+            }else if(singleStyle.separator==='space'){
+                rawCss+=singleStyle.selectors.join(' ')+'{'+singleStyle.style+';}';
+            }else {
+                rawCss+=singleStyle.selectors.toString()+'{'+singleStyle.style+';}';
+            }
+
+            rawCss+="\n\n";
+        })
+
+        console.log(rawCss)
+
+
+        if (style.styleSheet){
+            style.styleSheet.cssText=rawCss;
+        }else {
+            style.appendChild(document.createTextNode(rawCss));
+        }
+    })
+}
+
