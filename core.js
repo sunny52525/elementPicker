@@ -1,9 +1,23 @@
-// Unique ID for the className.
+chrome.runtime.onMessage.addListener(function (request, sender) {
+    if (request.action === "selectionMode") {
+        selectionMode = !selectionMode
+    }
+    if (request.action === "editing") {
+        editingMode = !editingMode
+    }
+});
+
+
 var MOUSE_VISITED_CLASSNAME = 'crx_mouse_visited';
 var CHECKED_CLASSNAME = "crx_mouse_checked";
 var SELECTED_CHECKBOX = 'selector_checkbox';
+var EDITING_MODE_ON = 'editing_on'
+var prevEditor = null;
 // Previous dom, that we want to track, so we can remove the previous styling.
 var prevDOM = null;
+var selectionMode = false;
+var prevDOMEditor = null;
+var editingMode = false;
 
 var checkBox = document.createElement('input');
 checkBox.setAttribute("type", "checkbox");
@@ -12,32 +26,13 @@ checkBox.setAttribute('id', SELECTED_CHECKBOX);
 var currentDom;
 // Mouse listener for any move event on the current document.
 document.addEventListener('mousemove', function (e) {
-    var srcElement = e.srcElement;
-
-    if (srcElement.id !== "selector_checkbox" && srcElement.nodeName === "DIV") {
-
-
-        if (prevDOM != null) {
-            prevDOM.classList.remove(MOUSE_VISITED_CLASSNAME);
-
-        }
-
-
-        srcElement.classList.add(MOUSE_VISITED_CLASSNAME);
-
-        currentDom = srcElement
-
-        if (srcElement.id !== "selector_checkbox")
-            srcElement.prepend(checkBox)
-        if (srcElement.classList.contains(CHECKED_CLASSNAME)) {
-
-            document.getElementById('selector_checkbox').checked = true;
-
-        }
-        prevDOM = srcElement;
-        checkBox.checked = false
-
+    if (selectionMode) {
+        selection(e)
+    } else if (editingMode) {
+        editing(e)
     }
+
+
 }, false);
 
 
@@ -48,7 +43,7 @@ checkBox.addEventListener('click', () => {
         console.log(currentDom)
         // html2Json(currentDom)
         // processTest(process.HTML2json(currentDom))
-        console.log(processRequest())
+        // console.log(processRequest())
 
 
         try {
@@ -60,6 +55,64 @@ checkBox.addEventListener('click', () => {
         currentDom.classList.add(CHECKED_CLASSNAME)
     }
 })
+
+const editing = (e) => {
+    var currentElement = e.srcElement;
+
+    currentElement.addEventListener('click', () => {
+
+        if (prevEditor != null) {
+            prevEditor.classList.remove(EDITING_MODE_ON)
+        }
+
+        currentElement.classList.add(EDITING_MODE_ON)
+
+        prevEditor = currentElement
+    })
+
+    if (prevDOMEditor != null) {
+
+        prevDOMEditor.classList.remove(MOUSE_VISITED_CLASSNAME);
+    }
+
+
+    currentElement.classList.add(MOUSE_VISITED_CLASSNAME)
+
+    prevDOMEditor = currentElement
+}
+
+
+const selection = (e) => {
+    var srcElement = e.srcElement;
+
+    if (srcElement.id !== "selector_checkbox" && srcElement.nodeName === "DIV") {
+
+        //
+        // srcElement.setAttribute("contenteditable", true);
+
+        if (prevDOM != null) {
+            prevDOM.classList.remove(MOUSE_VISITED_CLASSNAME);
+
+        }
+
+
+        srcElement.classList.add(MOUSE_VISITED_CLASSNAME);
+
+        currentDom = srcElement
+
+        if (srcElement.id !== "selector_checkbox") {
+            srcElement.prepend(checkBox)
+        }
+        if (srcElement.classList.contains(CHECKED_CLASSNAME)) {
+            document.getElementById('selector_checkbox').checked = true;
+        }
+        prevDOM = srcElement;
+        // prevDOM.setAttribute("contenteditable", false);
+        checkBox.checked = false
+
+    }
+}
+
 
 class process {
     static json2HTML(form) {
@@ -395,7 +448,7 @@ class processSchema {
         }
     }
 
-    static  cssToJson(cssRawText){
+    static cssToJson(cssRawText) {
         let cssJson = [];
 
         var cssArray = cssRawText.toString().split('}');
@@ -434,7 +487,8 @@ class processSchema {
 
         return cssJson
     }
-    static applyCss(cssJson){
+
+    static applyCss(cssJson) {
 
 
         cssJson.forEach((singleStyle) => {

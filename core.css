@@ -7,3 +7,23 @@
     background-color: #bcd5eb !important;
     outline: 1px solid #0428b0 !important;
 }
+
+#selector_checkbox{
+    width:30px;
+    height:30px;
+    background:black;
+    position:relative;
+    overflow:hidden;
+    cursor:crosshair;
+}
+
+
+.editing_on:hover > *[contenteditable="true"] {
+    background-color: rgba(217, 245, 255,0.5);
+}
+
+.editing_on{
+    -webkit-user-modify: read-write;
+    -moz-user-modify: read-write;
+    user-modify: read-write;
+}
