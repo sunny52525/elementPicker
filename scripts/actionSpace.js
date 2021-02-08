@@ -35,7 +35,7 @@ checkBox.setAttribute('id', SELECTED_CHECKBOX);
 
 var currentDom;
 // Mouse listener for any move event on the current document.
-document.addEventListener('mousemove', function (e) {
+document.addEventListener('mouseover', function (e) {
     if (selectionMode) {
         selection(e)
     } else if (editingMode) {
@@ -71,12 +71,13 @@ checkBox.addEventListener('click', () => {
         currentDom.classList.add(CHECKED_CLASSNAME)
     }
 })
-
+var i=0,j=0;
 const editing = (e) => {
-    var currentElement = e.srcElement;
-
+    var currentElement = e.target;
+    i++;
     currentElement.addEventListener('click', () => {
-
+ j++;
+        console.log(i+" -"+j)
         if (prevEditor != null) {
             prevEditor.classList.remove(EDITING_MODE_ON)
             document.getElementById('toolbar').remove()
@@ -102,7 +103,7 @@ const editing = (e) => {
 
 
 const selection = (e) => {
-    var srcElement = e.srcElement;
+    var srcElement = e.target;
 
     if (srcElement.id !== "selector_checkbox" && srcElement.nodeName === "DIV") {
 

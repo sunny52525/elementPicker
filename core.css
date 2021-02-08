@@ -9,6 +9,32 @@
     outline: 1px solid #0428b0 !important;
 }
 
+[crx_mouse_visited="mousemove"]{
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+[crx_mouse_visited="mousemove"]::before{
+    content: attr(currentstate);
+    color: #1e2326;
+    position: absolute;
+    display:block;
+    background-color: yellow;
+    z-index: -1;
+    border-style: solid;
+    border-width: thin;
+}
+
+.crx_mouse_visited:active:hover:before{
+    content: attr(currentstate);
+    color: #1e2326;
+    position: absolute;
+    display:block;
+    background-color: yellow;
+    z-index: -1;
+    border-style: solid;
+    border-width: thin;
+}
+
 #selector_checkbox{
     width:30px;
     height:30px;
