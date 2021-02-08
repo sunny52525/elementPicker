@@ -27,10 +27,11 @@
   "content_scripts": [
     {
       "matches":["<all_urls>"],
-      "css": ["core.css"],
-      "js": ["core.js"],
+      "css": ["core.css","fontawesome.css"],
+      "js": ["fontawesome.js","Entity.js","json.js","operate.js","process.js","core.js"],
       "run_at": "document_end",
       "all_frames": true
     }
-  ]
+  ],
+  "web_accessible_resources": ["Fonts/*.*", "*.ttf", "*.eot", "*.svg", "*.woff", "*.woff2"]
 }

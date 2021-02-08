@@ -8,6 +8,8 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
 });
 
 
+
+
 var MOUSE_VISITED_CLASSNAME = 'crx_mouse_visited';
 var CHECKED_CLASSNAME = "crx_mouse_checked";
 var SELECTED_CHECKBOX = 'selector_checkbox';
@@ -35,8 +37,14 @@ document.addEventListener('mousemove', function (e) {
 
 }, false);
 
+var toolbar=document.createElement('div');
+var toolbarContent=new Entity(toolbarJson,toolbar)
+toolbarContent.entity.id="toolbar"
+
+
 
 checkBox.addEventListener('click', () => {
+
     if (checkBox.checked) {
 
         // var json=processSchema.create(currentDom)
@@ -63,15 +71,18 @@ const editing = (e) => {
 
         if (prevEditor != null) {
             prevEditor.classList.remove(EDITING_MODE_ON)
+            document.getElementById('toolbar').remove()
         }
 
-        currentElement.classList.add(EDITING_MODE_ON)
+        currentElement.prepend(toolbarContent.entity)
+        currentElement.classList.add(EDITING_MODE_ON);
+        console.log(currentElement)
+
 
         prevEditor = currentElement
     })
 
     if (prevDOMEditor != null) {
-
         prevDOMEditor.classList.remove(MOUSE_VISITED_CLASSNAME);
     }
 
@@ -114,68 +125,6 @@ const selection = (e) => {
 }
 
 
-class process {
-    static json2HTML(form) {
-        var output = document.createElement(form.tagName);
-        process.assignAttributes(form, output);
-        if (form.innerText) {
-            output.innerText = form.innerText;
-        }
-        if (form.childNodes.length > 0) {
-            process.assignChildNodes(form.childNodes, output, process.json2HTML);
-        }
-        return output;
-    }
-
-    static assignAttributes(obj, objResponse) {
-        if (!obj) return;
-        if (!objResponse) {
-            var objResponse = {};
-        }
-        for (var key in obj) {
-            if (key !== "tagName" && key !== "childNodes")
-                objResponse = process.setData(obj, objResponse, key);
-        }
-        return objResponse;
-    }
-
-    static assignChildNodes(child, childResponse, callback) {
-        if (!child) return;
-        if (!childResponse) {
-            var childResponse = [];
-        }
-        ;
-        for (var i = 0; i < child.length; i++) {
-            childResponse = process.setData(child, childResponse, i, callback);
-        }
-        return childResponse;
-    }
-
-    static setData(input, output, key, callback = {}) {
-        if (output instanceof Array) {
-            if (input[key].nodeType === Node.TEXT_NODE)
-                output.push(input[key].textContent);
-            else if (typeof callback === "function")
-                output.push(callback(input[key]));
-        }
-        if (typeof output === 'object' && input[key].value !== undefined)
-            output[input[key].name] = input[key].value;
-        if (output instanceof HTMLElement)
-            if (typeof key === 'number' && typeof callback === "function")
-                output.appendChild(callback(input[key]));
-            else
-                output.setAttribute(key, input[key]);
-        return output;
-    }
-
-    static HTML2json(nodeE) {
-        return {
-            tagName: nodeE.tagName,
-            attributes: process.assignAttributes(nodeE.attributes, {}),
-            childNodes: process.assignChildNodes(nodeE.childNodes, [], process.HTML2json),
-        };
-    }
-}
 
 
 class storageHelper {
@@ -645,7 +594,7 @@ function processTest(json) {
 
 
 
-
-
-
-
+function setTranslate(xPos, yPos, el) {
+    console.log(el)
+    el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+}
