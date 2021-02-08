@@ -22,13 +22,13 @@
   },
   "background": {
     "persistent": false,
-    "scripts": ["background.js"]
+    "scripts": ["/scripts/actionController.js"]
   },
   "content_scripts": [
     {
       "matches":["<all_urls>"],
-      "css": ["core.css","fontawesome.css"],
-      "js": ["fontawesome.js","Entity.js","json.js","operate.js","process.js","core.js"],
+      "css": ["core.css" ],
+      "js": [ "/scripts/Entity.js","/scripts/json.js","/scripts/operate.js","/scripts/process.js","/scripts/actionSpace.js"],
       "run_at": "document_end",
       "all_frames": true
     }

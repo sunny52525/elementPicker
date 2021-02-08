@@ -1,4 +1,4 @@
-@import url("https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css");
+
 .crx_mouse_visited {
     background-color: #bcd5eb !important;
     outline: 1px solid #5166bb !important;
@@ -33,24 +33,22 @@
 
 
 #toolbar{
+    margin-top: -100px;
     z-index: 11999;
-    /*!*background-color: black;*!*/
-    /*position: fixed;*/
-    /*top: 0;*/
+    background-color: wheat;
     position: absolute;
-
     width: fit-content;
     margin-left: auto;
     margin-right: auto;
     }
 .topbar-button {
     font-family: 'ubuntu', sans-serif;
-    color: var(--text);
+
     font-size: 15px;
     border: 0;
     padding: 20px 24px 30px 21px;
     cursor: pointer;
-    background: var(--background);
+
     float: right;
     height: 40px;
     margin-top: 5px;

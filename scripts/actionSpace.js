@@ -7,6 +7,14 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
     }
 });
 
+var fontawesome=document.createElement('link');
+fontawesome.href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+fontawesome.rel="stylesheet"
+fontawesome.integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
+fontawesome.crossOrigin="anonymous"
+
+document.head.append(fontawesome)
+
 
 
 
@@ -127,22 +135,6 @@ const selection = (e) => {
 
 
 
-class storageHelper {
-    static saveToLocal = (json) => {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(new Blob([JSON.stringify(json, null, 2)], {
-            type: "application/json"
-        }));
-        a.setAttribute("download", "data.json");
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-    }
-
-
-}
-
-// window.onload(processRequest)
 
 const getCssStyle = (selectedDocument,
                      getCssOfChild = false,
@@ -494,37 +486,7 @@ class processSchema {
 
     }
 
-    static addStyleSheet = (cssJson) => {
-        cssJson.forEach((singleStyle) => {
-            var style = document.createElement('style');
-            var head = document.head;
 
-            head.appendChild(style)
-            style.type = "text/css";
-            let rawCss = "";
-
-            cssJson.forEach((singleStyle) => {
-                if (singleStyle.separator === 'comma') {
-                    rawCss += singleStyle.selectors.join(',') + '{' + singleStyle.style + ';}';
-                } else if (singleStyle.separator === 'space') {
-                    rawCss += singleStyle.selectors.join(' ') + '{' + singleStyle.style + ';}';
-                } else {
-                    rawCss += singleStyle.selectors.toString() + '{' + singleStyle.style + ';}';
-                }
-
-                rawCss += "\n\n";
-            })
-
-            console.log(rawCss)
-
-
-            if (style.styleSheet) {
-                style.styleSheet.cssText = rawCss;
-            } else {
-                style.appendChild(document.createTextNode(rawCss));
-            }
-        })
-    }
 
     static applyCssOnElement = (domElement,
                                 selector,
@@ -573,22 +535,6 @@ function getEntityType(entity) {
 }
 
 
-function processTest(json) {
-    //  e.preventDefault();
-    var in2 = json;
-    console.log(in2)
-    var outputElement = document.createElement("outputElement");
-    console.log(outputElement)
-    var outputE = processSchema.schema2(in2, outputElement);
-    console.log("outputElement", outputE)
-    //  const depth = getMax(outputArray,2);
-
-    // var table = createTable(outputArray);
-    // outputJson = arr2(outputArray,{} ,depth);
-    // console.log(outputJson);
-    //  document.getElementById("output").innerText = JSON.stringify(outputArray);
-    // document.getElementById("output").appendChild(outputE);
-}
 
 
 
