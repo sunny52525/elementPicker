@@ -28,7 +28,7 @@
     {
       "matches":["<all_urls>"],
       "css": ["core.css" ],
-      "js": [ "/scripts/Entity.js","/scripts/json.js","/scripts/operate.js","/scripts/process.js","/scripts/actionSpace.js"],
+      "js": [ "/scripts/helper/Entity.js","/scripts/helper/json.js","/scripts/helper/operate.js","/scripts/helper/process.js","/scripts/actionSpace.js"],
       "run_at": "document_end",
       "all_frames": true
     }
