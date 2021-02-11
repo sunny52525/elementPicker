@@ -1,4 +1,4 @@
-var toolbarJson = {
+var cssToolBox = {
     toolBar: [
         {
             name: 'button',
@@ -92,3 +92,23 @@ var toolbarJson = {
     ]
 }
 var htmlAttributesList = ['name', 'label', 'onclick', 'lineNumbers', 'class', 'id', 'text', 'title', 'content', 'value', 'type', 'data-cmd'];
+
+
+var toolbarJson = {
+    h1: {
+        name: "h1",
+        'innerText': "TOOLBOX"
+    },
+    p: {
+        name: 'p',
+        'innerText': 'close',
+        id: 'closeButton'
+    },
+    button: {
+        name:'button',
+        'innerText':'Save',
+        id:'save'
+    }
+    ,
+    div: []
+}

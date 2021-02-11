@@ -7,15 +7,13 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
     }
 });
 
-var fontawesome=document.createElement('link');
-fontawesome.href="https://use.fontawesome.com/releases/v5.7.2/css/all.css"
-fontawesome.rel="stylesheet"
-fontawesome.integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
-fontawesome.crossOrigin="anonymous"
+var fontawesome = document.createElement('link');
+fontawesome.href = "https://use.fontawesome.com/releases/v5.7.2/css/all.css"
+fontawesome.rel = "stylesheet"
+fontawesome.integrity = "sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr"
+fontawesome.crossOrigin = "anonymous"
 
 document.head.append(fontawesome)
-
-
 
 
 var MOUSE_VISITED_CLASSNAME = 'crx_mouse_visited';
@@ -27,7 +25,8 @@ var prevEditor = null;
 var prevDOM = null;
 var selectionMode = false;
 var prevDOMEditor = null;
-var editingMode = false;
+var editingMode = true;
+var editingADiv = false;
 
 var checkBox = document.createElement('input');
 checkBox.setAttribute("type", "checkbox");
@@ -36,7 +35,14 @@ checkBox.setAttribute('id', SELECTED_CHECKBOX);
 var currentDom;
 // Mouse listener for any move event on the current document.
 document.addEventListener('mouseover', function (e) {
-    if (selectionMode) {
+    var currentElement = e.target
+    // console.log(currentElement)
+    if (currentElement.tagName === "button" || currentElement.classList.contains('fas') || currentElement.classList.contains('topbar-button') || currentElement.tagName !== "DIV") {
+        return;
+    }
+    if (editingADiv) {
+        // console.log(editingADiv)
+    } else if (selectionMode) {
         selection(e)
     } else if (editingMode) {
         editing(e)
@@ -45,50 +51,117 @@ document.addEventListener('mouseover', function (e) {
 
 }, false);
 
-var toolbar=document.createElement('div');
-var toolbarContent=new Entity(toolbarJson,toolbar)
-toolbarContent.entity.id="toolbar"
+var toolbar = document.createElement('div');
+var toolbarContent // = new Entity(toolbarJson, toolbar)
+// toolbarContent.entity.id = "toolbar"
 
+//
+// checkBox.addEventListener('click', () => {
+//
+//     if (checkBox.checked) {
+//
+//         // var json=processSchema.create(currentDom)
+//         console.log(currentDom)
+//         // html2Json(currentDom)
+//         // processTest(process.HTML2json(currentDom))
+//         // console.log(processRequest())
+//
+//
+//         try {
+//
+//             // console.log(process.json2HTML(json))  //throwing error
+//         } catch (e) {
+//             console.log(e)
+//         }
+//         currentDom.classList.add(CHECKED_CLASSNAME)
+//     }
+// })
 
+var added = 0;
 
-checkBox.addEventListener('click', () => {
-
-    if (checkBox.checked) {
-
-        // var json=processSchema.create(currentDom)
-        console.log(currentDom)
-        // html2Json(currentDom)
-        // processTest(process.HTML2json(currentDom))
-        // console.log(processRequest())
-
-
-        try {
-
-            // console.log(process.json2HTML(json))  //throwing error
-        } catch (e) {
-            console.log(e)
-        }
-        currentDom.classList.add(CHECKED_CLASSNAME)
+function addNewStyles(selectedElement) {
+    var styledText=""
+    var elem = document.getElementById('cssToolbar').children[3]
+    for (let i = 0; i < elem.childElementCount; i += 2) {
+       styledText+= elem.children[i].innerText+":"+elem.children[i+1].value + " !important;\n";
     }
-})
-var i=0,j=0;
+    // styledText="{"+styledText+"}";
+    console.log(styledText)
+    console.log(selectedElement)
+
+    selectedElement.setAttribute('style',styledText)
+}
+
+function addCssToolbox(selectedElement) {
+    if (added > 0)
+        return
+    added++;
+    toolbarContent = new Entity(toolbarJson, toolbar)
+    toolbarContent.entity.id = "cssToolbar"
+    document.body.append(toolbarContent.entity)
+    document.getElementById('closeButton').addEventListener('click', () => {
+        added = 0;
+        editingADiv = false
+        document.getElementById('cssToolbar').remove()
+    })
+    document.getElementById('save').addEventListener('click', () => {
+        addNewStyles(selectedElement)
+    })
+}
+
 const editing = (e) => {
+
+    if (editingADiv) {
+        return;
+    }
     var currentElement = e.target;
-    i++;
+    if (currentElement.tagName === "button") {
+        console.log("oops,clicked on a button")
+        return;
+    }
     currentElement.addEventListener('click', () => {
- j++;
-        console.log(i+" -"+j)
+        editingADiv = true
         if (prevEditor != null) {
             prevEditor.classList.remove(EDITING_MODE_ON)
-            document.getElementById('toolbar').remove()
-        }
+            try {
 
-        currentElement.prepend(toolbarContent.entity)
+                document.getElementById('toolbar').remove()
+            } catch (e) {
+
+                console.error(e)
+            }
+        }
+        var styles = Styles.getUserStyles(currentElement)
+
+        for (let key in styles) {
+            let headingObject = {
+                name: 'h1',
+                'innerText': key
+            }, inputObject = {
+                name: 'input',
+                'value': styles[key],
+                type: 'text'
+            }
+
+            toolbarJson.div.push(headingObject)
+            toolbarJson.div.push(inputObject)
+
+        }
+        addCssToolbox(currentElement)
+        // currentElement.prepend(toolbarContent.entity)
         currentElement.classList.add(EDITING_MODE_ON);
+        // currentElement.setAttribute('contenteditable',true)
+        createModel()
         console.log(currentElement)
 
 
+        if (prevEditor != null)
+            prevEditor.removeEventListener('mousemove click', () => {
+            })
+
         prevEditor = currentElement
+
+        // prevEditor.removeAttribute('contentEditable')
     })
 
     if (prevDOMEditor != null) {
@@ -132,9 +205,6 @@ const selection = (e) => {
 
     }
 }
-
-
-
 
 
 const getCssStyle = (selectedDocument,
@@ -488,7 +558,6 @@ class processSchema {
     }
 
 
-
     static applyCssOnElement = (domElement,
                                 selector,
                                 type, //class,id,tag
@@ -536,12 +605,15 @@ function getEntityType(entity) {
 }
 
 
-
-
-
-
-
 function setTranslate(xPos, yPos, el) {
     console.log(el)
     el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+}
+
+
+const createModel = () => {
+    // const model = new Entity(toolbarContent, null),
+    //     view = new actionview(model, {
+    //         'buttons': document.getElementById('toolbar').firstElementChild
+    //     })
 }

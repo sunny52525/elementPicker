@@ -57,7 +57,13 @@
 }
 
 
-
+#cssToolbar{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 9999;
+    background-color: wheat;
+}
 #toolbar{
     margin-top: -100px;
     z-index: 11999;
@@ -83,4 +89,9 @@
 button,i{
     width: 32px;
     height: 32px;
+}
+
+#container-toolbar{
+
+    position: relative;
 }
